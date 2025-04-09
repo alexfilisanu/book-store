@@ -1,0 +1,62 @@
+version: "3.8"
+services:
+  #  frontend:
+  #    build:
+  #      context: ./frontend
+  #      dockerfile: Dockerfile
+  #    container_name: frontend
+  #    ports:
+  #      - "4200:4200"
+  #    depends_on:
+  #      - auth
+  #      - bookshelf
+
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: auth
+    ports:
+      - "3100:3100"
+    environment:
+      POSTGRES_HOST: books-database
+      POSTGRES_DB: books-database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    depends_on:
+      - books-database
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "3050:3050"
+    environment:
+      POSTGRES_HOST: books-database
+      POSTGRES_DB: books-database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    depends_on:
+      - books-database
+
+  books-database:
+    image: postgres:15
+    container_name: books-database
+    ports:
+      - "5123:5432"
+    environment:
+      POSTGRES_DB: books-database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - books-db:/var/lib/postgresql/data
+      - ./database/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - ./database/books.csv:/docker-entrypoint-initdb.d/books.csv
+      - ./database/users.csv:/docker-entrypoint-initdb.d/users.csv
+      - ./database/ratings.csv:/docker-entrypoint-initdb.d/ratings.csv
+      - ./database/inventory.csv:/docker-entrypoint-initdb.d/inventory.csv
+
+volumes:
+  books-db:
