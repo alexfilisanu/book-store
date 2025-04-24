@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My cart</title>
+  <link rel="stylesheet" href="../../../../assets/css/bootstrap.css"/>
+  <link rel="stylesheet" href="../../../../assets/css/all.min.css"/>
+</head>
+
+<body>
+<img class="bookshelf-img-container" src="../../../../assets/images/bookshelf.jpg" alt="bookshelf">
+
+<div class="books-container">
+  <div class="order-form">
+    <h3>Complete order</h3>
+    <form [formGroup]="orderFormGroup" (ngSubmit)="onSubmit()">
+      <div>
+        <label>Address:</label>
+        <input type="text" class="form-input" id="address" formControlName="address"
+               placeholder="Street, number, city, zip code">
+      </div>
+      <button class="confirm-btn" [disabled]="totalBooksCart === 0">Place Order</button>
+    </form>
+  </div>
+
+  @if (booksCart.length === 0) {
+    <h2>Your cart is empty</h2>
+  } @else {
+    <h2>Your cart:</h2>
+  }
+
+  <app-books-pagination
+    [books]="booksCart" [currentPage]="currentPage" [totalPages]="totalPages" (pageChange)="onPageChange($event)">
+  </app-books-pagination>
+</div>
+</body>

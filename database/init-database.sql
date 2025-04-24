@@ -25,18 +25,32 @@ CREATE TABLE IF NOT EXISTS ratings
 
 CREATE TABLE IF NOT EXISTS inventory
 (
-    ISBN        TEXT REFERENCES books (ISBN) ON DELETE CASCADE,
-    Quantity    INTEGER CHECK (Quantity >= 0),
-    Price       NUMERIC CHECK (Price >= 0),
+    ISBN     TEXT REFERENCES books (ISBN) ON DELETE CASCADE,
+    Quantity INTEGER CHECK (Quantity >= 0),
+    Price    NUMERIC CHECK (Price >= 0),
     PRIMARY KEY (ISBN)
 );
 
 CREATE TABLE IF NOT EXISTS orders
 (
-    Order_ID SERIAL PRIMARY KEY,
-    User_ID  INTEGER REFERENCES users (User_ID) ON DELETE CASCADE,
-    ISBN     TEXT REFERENCES books (ISBN) ON DELETE CASCADE,
+    Order_ID   SERIAL PRIMARY KEY,
+    User_ID    INTEGER REFERENCES users (User_ID) ON DELETE CASCADE,
+    Address    TEXT,
     Order_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS order_items
+(
+    Order_ID INTEGER REFERENCES orders (Order_ID) ON DELETE CASCADE,
+    ISBN     TEXT REFERENCES books (ISBN) ON DELETE CASCADE,
+    PRIMARY KEY (Order_ID, ISBN)
+);
+
+CREATE TABLE IF NOT EXISTS cart_items
+(
+    User_ID INTEGER REFERENCES users (User_ID) ON DELETE CASCADE,
+    ISBN    TEXT REFERENCES books (ISBN) ON DELETE CASCADE,
+    PRIMARY KEY (User_ID, ISBN)
 );
 
 COPY books (ISBN, Book_Title, Book_Author, Year_Of_Publication, Publisher, Image_URL)
@@ -57,4 +71,3 @@ COPY inventory (ISBN, Quantity, Price)
 
 -- Adjust the sequence for User_ID to avoid conflicts with already existing users
 SELECT SETVAL('users_user_id_seq', (SELECT COALESCE(MAX(User_ID), 0) + 1 FROM users));
-

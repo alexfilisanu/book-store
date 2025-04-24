@@ -6,6 +6,7 @@ import {LoginComponent} from "./pages/auth/login/login.component";
 import {RegisterComponent} from "./pages/auth/register/register.component";
 import {NotFoundComponent} from "./pages/not-found/not-found.component";
 import {MyReviewsComponent} from "./pages/book-pages/my-reviews/my-reviews.component";
+import {MyCartComponent} from "./pages/book-pages/my-cart/my-cart.component";
 
 export const routes: Routes = [
   {
@@ -36,6 +37,10 @@ export const routes: Routes = [
       {
         path: 'my-reviews',
         component: MyReviewsComponent
+      },
+      {
+        path: 'my-cart',
+        component: MyCartComponent
       }
     ]
   },

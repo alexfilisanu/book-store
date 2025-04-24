@@ -25,7 +25,7 @@
       <p>Price: {{ book.Price }} $</p>
       <p>Quantity: {{ book.Quantity }}</p>
       <div class="cart-action">
-        <button class="cart-btn" (click)="addToCart(book)" [disabled]="book.Quantity === 0">
+        <button class="cart-btn" (click)="addToCart()" [disabled]="book.Quantity === 0 || alreadyInCart">
           <i class="fa fa-shopping-cart"></i> Add to Cart
         </button>
         <span class="added-msg" *ngIf="addedToCart">✔️ Added to cart successfully!</span>

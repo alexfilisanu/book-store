@@ -1,0 +1,50 @@
+.books-container {
+  text-align: center;
+}
+
+.books-container h2 {
+  text-align: left;
+  color: #FAF9F6;
+  font-size: 50px;
+  margin-bottom: 30px;
+}
+
+.bookshelf-img-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.order-form {
+  width: 50%;
+  background-color: rgba(208, 162, 116, 0.9);;
+  border-radius: 20px;
+  padding-top: 20px;
+  margin: 30px auto 10px;
+}
+
+.order-form .form-input {
+  width: 60%;
+  padding: 10px;
+  margin: 10px auto 10px 20px;
+  border-radius: 5px;
+  border: none;
+}
+
+.order-form .form-input:focus {
+  outline: none;
+}
+
+.order-form .confirm-btn {
+  margin: 10px auto 20px;
+  font-size: 20px;
+  border-radius: 5px;
+  width: 40%;
+}
+
+.order-form .confirm-btn:focus {
+  outline: none;
+}

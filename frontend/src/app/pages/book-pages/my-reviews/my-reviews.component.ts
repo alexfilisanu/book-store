@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {BookService} from "../book.service";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 import {BooksPaginationComponent} from "../../../components/books-pagination/books-pagination.component";
 
 @Component({
@@ -22,7 +22,7 @@ export class MyReviewsComponent {
   public totalPages: number = 0;
   private booksPerPage: number = 4;
 
-  constructor(private bookService: BookService, private route: ActivatedRoute, private router: Router) {
+  constructor(private bookService: BookService, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {

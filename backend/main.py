@@ -19,12 +19,13 @@ def get_db_connection():
 
 @app.route('/total-books', methods=['GET'])
 def get_total_books():
+    search_query = request.args.get('q', '')
+
     try:
-        search_query = request.args.get('q', '')
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        query = f"""
+        query = """
         SELECT 
             COUNT(*) 
         FROM 
@@ -50,12 +51,12 @@ def get_total_books():
 
 @app.route('/books', methods=['GET'])
 def get_books():
-    try:
-        search_query = request.args.get('q', '')
-        page = int(request.args.get('page', 1))
-        limit = int(request.args.get('limit', 10))
-        offset = (page - 1) * limit
+    search_query = request.args.get('q', '')
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 10))
+    offset = (page - 1) * limit
 
+    try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -175,7 +176,7 @@ def get_my_total_reviews():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        query = f"""
+        query = """
         SELECT
             COUNT(*)
         FROM
@@ -261,7 +262,7 @@ def get_review_status():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        query = f"""
+        query = """
         SELECT
             Book_Rating
         FROM
@@ -294,7 +295,7 @@ def add_book_review():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        query = f"""
+        query = """
         INSERT INTO 
             ratings (User_ID, ISBN, Book_Rating)
         VALUES 
@@ -307,8 +308,201 @@ def add_book_review():
         return jsonify({"message": "Review added successfully"}), 200
 
     except Exception as e:
-        return jsonify({str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
+
+@app.route('/cart', methods=['POST'])
+def add_to_cart():
+    data = request.json
+    if not data:
+        return jsonify({'No data provided'}), 400
+
+    user_id = int(data.get('userId'))
+    isbn = data.get('isbn')
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        insert_query = """
+        INSERT INTO cart_items (User_ID, ISBN)
+        VALUES (%s, %s);
+        """
+        cursor.execute(insert_query, (user_id, isbn))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Book added to cart'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/total-cart', methods=['GET'])
+def get_total_cart():
+    user_id = request.args.get('userId')
+
+    if not user_id:
+        return jsonify({'error': 'Missing required data'}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        query = """
+        SELECT
+            COUNT(*)
+        FROM
+            cart_items
+        WHERE
+            User_ID = %s;
+        """
+        cursor.execute(query, (user_id,))
+        total_books = cursor.fetchone()[0]
+
+        conn.close()
+        return jsonify({'totalBooksCart': total_books}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/cart', methods=['GET'])
+def get_books_cart():
+    user_id = request.args.get('userId')
+    page = request.args.get('page')
+    limit = request.args.get('limit')
+
+    if not user_id:
+        return jsonify({'error': 'Missing required data'}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        query = """
+        SELECT
+            b.ISBN,
+            b.Book_Title,
+            b.Book_Author,
+            b.Image_URL,
+            COALESCE(AVG(r.Book_Rating), 0) AS Average_Rating,
+            i.Price
+        FROM
+            cart_items c
+        JOIN
+            books b ON c.ISBN = b.ISBN
+        LEFT JOIN
+            ratings r ON b.ISBN = r.ISBN
+        LEFT JOIN
+            inventory i ON b.ISBN = i.ISBN
+        WHERE
+            c.User_ID = %s
+        GROUP BY 
+            b.ISBN, b.Book_Title, b.Book_Author, b.Image_URL, i.Price
+        """
+
+        params = [user_id]
+        if page and limit:
+            offset = (int(page) - 1) * int(limit)
+            query += " LIMIT %s OFFSET %s"
+            params += [int(limit), offset]
+
+        cursor.execute(query, tuple(params))
+        rows = cursor.fetchall()
+
+        books = [{
+            "ISBN": row[0],
+            "Book_Title": row[1],
+            "Book_Author": row[2],
+            "Image_URL": row[3],
+            "Average_Rating": round(row[4], 2),
+            "Price": float(row[5]) if row[5] is not None else 0.0
+        } for row in rows]
+
+        conn.close()
+        return jsonify({'booksCart': books}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/order', methods=['POST'])
+def place_order():
+    data = request.get_json()
+
+    user_id = data.get('userId')
+    address = data.get('address')
+    items = data.get('items', [])
+
+    if not user_id or not address or not items:
+        return jsonify({'error': 'Missing required data'}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        for item in items:
+            isbn = item['isbn']
+            cursor.execute("""
+                SELECT Quantity FROM inventory WHERE ISBN = %s;
+            """, (isbn,))
+            result = cursor.fetchone()
+
+            if not result:
+                return jsonify({'error': f'Cartea cu ISBN {isbn} nu există în stoc.'}), 400
+
+        cursor.execute("""
+            INSERT INTO orders (User_ID, Address)
+            VALUES (%s, %s)
+            RETURNING Order_ID;
+        """, (user_id, address))
+        order_id = cursor.fetchone()[0]
+
+        for item in items:
+            isbn = item['isbn']
+            cursor.execute("""
+                INSERT INTO order_items (Order_ID, ISBN)
+                VALUES (%s, %s);
+            """, (order_id, isbn))
+
+            cursor.execute("""
+                UPDATE inventory
+                SET Quantity = Quantity - %s
+                WHERE ISBN = %s;
+            """, (1, isbn))
+
+            cursor.execute("""
+                DELETE FROM cart_items
+                WHERE User_ID = %s AND ISBN = %s;
+            """, (user_id, isbn))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Order placed successfully!'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/cart/check', methods=['GET'])
+def check_if_in_cart():
+    user_id = request.args.get('userId')
+    isbn = request.args.get('isbn')
+
+    if not user_id or not isbn:
+        return jsonify({'error': 'Missing required data'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT 1 FROM cart_items WHERE User_ID = %s AND ISBN = %s
+    """, (user_id, isbn))
+    result = cursor.fetchone()
+    conn.close()
+
+    return jsonify({'inCart': bool(result)})
 
 if __name__ == '__main__':
     app.run(debug=True, port=3050, host='0.0.0.0')

@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {StarRatingComponent} from "../../../components/star-rating/star-rating.component";
 import {BookService} from "../book.service";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 import {NgIf} from "@angular/common";
 
 @Component({
@@ -21,8 +21,9 @@ export class BookComponent {
   public userId: string | null = sessionStorage.getItem('userId');
   public bookRating: number | null = null;
   public addedToCart: boolean = false;
+  public alreadyInCart: boolean = false;
 
-  constructor(private bookService: BookService, private route: ActivatedRoute, private router: Router) {
+  constructor(private bookService: BookService, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
@@ -30,6 +31,7 @@ export class BookComponent {
       const {isbn} = params;
       this.getBook(isbn);
       this.checkReviewStatus(isbn);
+      this.checkIfInCart(isbn);
     })
   }
 
@@ -44,15 +46,40 @@ export class BookComponent {
     });
   }
 
-  public addToCart(book: any): void {
-  if (book.Quantity > 0) {
-    console.log(`Added ${book.Book_Title} to cart!`);
-    this.addedToCart = true;
-    setTimeout(() => this.addedToCart = false, 3000);
-  } else {
-    console.warn('This book is out of stock!');
+  public addToCart(): void {
+    if (!this.userId) {
+      console.error('No user ID found');
+      return;
+    }
+
+    const data = {userId: this.userId, isbn: this.book.ISBN};
+    this.bookService.addToCart(data).subscribe({
+      next: () => {
+        this.addedToCart = true;
+        this.alreadyInCart = true;
+        setTimeout(() => this.addedToCart = false, 3000);
+      },
+      error: (error) => {
+        console.error('Failed to add to cart:', error);
+      }
+    });
   }
-}
+
+  private checkIfInCart(isbn: string): void {
+    if (!this.userId) {
+      console.error('No user ID found');
+      return;
+    }
+
+    this.bookService.checkIfInCart(this.userId, isbn).subscribe({
+      next: (response) => {
+        this.alreadyInCart = response.inCart;
+      },
+      error: (error) => {
+        console.error('Error checking cart status:', error);
+      }
+    })
+  };
 
   private checkReviewStatus(isbn: string): void {
     if (!this.userId) {
