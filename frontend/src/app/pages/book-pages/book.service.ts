@@ -64,6 +64,10 @@ export class BookService {
     return this.http.post(`${this.baseUrl}/cart`, data);
   }
 
+  public removeFromCart(data: any): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/cart`, {body: data});
+  }
+
   public getMyTotalBooksCart(userId: string): Observable<any> {
     const params = new HttpParams()
       .set('userId', userId);

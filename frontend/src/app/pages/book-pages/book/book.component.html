@@ -25,10 +25,15 @@
       <p>Price: {{ book.Price }} $</p>
       <p>Quantity: {{ book.Quantity }}</p>
       <div class="cart-action">
-        <button class="cart-btn" (click)="addToCart()" [disabled]="book.Quantity === 0 || alreadyInCart">
-          <i class="fa fa-shopping-cart"></i> Add to Cart
-        </button>
-        <span class="added-msg" *ngIf="addedToCart">✔️ Added to cart successfully!</span>
+        @if (!addedToCart) {
+          <button class="cart-btn" (click)="addToCart()" [disabled]="book.Quantity === 0">
+            <i class="fa fa-shopping-cart"></i> Add to Cart
+          </button>
+        } @else {
+          <button class="cart-btn" (click)="removeFromCart()">
+            <i class="fa fa-shopping-cart"></i> Remove from Cart
+          </button>
+        }
       </div>
       <div class="review-container" *ngIf="!bookRating">
         @for (_ of [].constructor(10); track $index) {

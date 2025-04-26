@@ -339,6 +339,34 @@ def add_to_cart():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/cart', methods=['DELETE'])
+def remove_from_cart():
+    data = request.json
+    if not data:
+        return jsonify({'No data provided'}), 400
+
+    user_id = int(data.get('userId'))
+    isbn = data.get('isbn')
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        delete_query = """
+        DELETE FROM cart_items
+        WHERE User_ID = %s AND ISBN = %s;
+        """
+        cursor.execute(delete_query, (user_id, isbn))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Book removed from cart'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/total-cart', methods=['GET'])
 def get_total_cart():
     user_id = request.args.get('userId')
@@ -557,6 +585,44 @@ def delete_book(isbn):
         conn.close()
 
         return jsonify({'message': 'Book deleted successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/book', methods=['POST'])
+def add_book():
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    isbn = data.get('isbn')
+    title = data.get('title')
+    author = data.get('author')
+    year = data.get('year')
+    publisher = data.get('publisher')
+    image = data.get('image')
+    price = data.get('price')
+    quantity = data.get('quantity')
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO books (ISBN, Book_Title, Book_Author, Year_Of_Publication, Publisher, Image_URL)
+            VALUES (%s, %s, %s, %s, %s, %s);
+        """, (isbn, title, author, year, publisher, image))
+
+        cursor.execute("""
+            INSERT INTO inventory (ISBN, Price, Quantity)
+            VALUES (%s, %s, %s);
+        """, (isbn, price, quantity))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Book added successfully'}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

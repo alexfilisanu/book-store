@@ -14,16 +14,15 @@
   font-size: 26px;
 }
 
-.btn-back {
+.confirm-btn {
   margin-top: 20px;
-  display: inline-block;
   padding: 12px 24px;
-  background-color: #4CAF50;
-  color: white;
-  font-size: 18px;
+  font-size: 22px;
+  width: 15%;
   border: none;
   border-radius: 5px;
-  text-decoration: none;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.confirm-btn:focus {
+  outline: none;
 }

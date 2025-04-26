@@ -21,7 +21,6 @@ export class BookComponent {
   public userId: string | null = sessionStorage.getItem('userId');
   public bookRating: number | null = null;
   public addedToCart: boolean = false;
-  public alreadyInCart: boolean = false;
 
   constructor(private bookService: BookService, private route: ActivatedRoute) {
   }
@@ -56,8 +55,6 @@ export class BookComponent {
     this.bookService.addToCart(data).subscribe({
       next: () => {
         this.addedToCart = true;
-        this.alreadyInCart = true;
-        setTimeout(() => this.addedToCart = false, 3000);
       },
       error: (error) => {
         console.error('Failed to add to cart:', error);
@@ -73,13 +70,30 @@ export class BookComponent {
 
     this.bookService.checkIfInCart(this.userId, isbn).subscribe({
       next: (response) => {
-        this.alreadyInCart = response.inCart;
+        this.addedToCart = response.inCart;
       },
       error: (error) => {
         console.error('Error checking cart status:', error);
       }
     })
   };
+
+  public removeFromCart(): void {
+    if (!this.userId) {
+      console.error('No user ID found');
+      return;
+    }
+
+    const data = {userId: this.userId, isbn: this.book.ISBN};
+    this.bookService.removeFromCart(data).subscribe({
+      next: () => {
+        this.addedToCart = false;
+      },
+      error: (error) => {
+        console.error('Failed to remove from cart:', error);
+      }
+    });
+  }
 
   private checkReviewStatus(isbn: string): void {
     if (!this.userId) {

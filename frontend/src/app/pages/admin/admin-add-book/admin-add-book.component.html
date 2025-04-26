@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Add Book</title>
+
+  <link rel="stylesheet" href="../../../../assets/css/bootstrap.css"/>
+  <link rel="stylesheet" href="../../../../assets/css/all.min.css"/>
+</head>
+
+<body>
+<img class="bookshelf-img-container" src="../../../../assets/images/bookshelf.jpg" alt="bookshelf">
+<div class="book-container">
+  <form [formGroup]="bookForm" class="book-form" (ngSubmit)="onSubmit()">
+    <h1>Insert new book details:</h1>
+    <input class="form-control" formControlName="isbn" id="isbn" placeholder="ISBN" type="text"/>
+    <input class="form-control" formControlName="title" id="title" placeholder="Book Title" type="text"/>
+    <input class="form-control" formControlName="author" id="author" placeholder="Author" type="text"/>
+    <input class="form-control" formControlName="publisher" id="publisher" placeholder="Publisher" type="text"/>
+    <input class="form-control" formControlName="year" id="year" placeholder="Year of Publication" type="number"/>
+    <input class="form-control" formControlName="image" id="image" placeholder="Image URL" type="text"/>
+    <input class="form-control" formControlName="price" placeholder="Price ($)" type="number"/>
+    <input class="form-control" formControlName="quantity" placeholder="Quantity" type="number"/>
+    <button class="confirm-btn">Add Book</button>
+  </form>
+</div>
+</body>

@@ -75,5 +75,5 @@ export class AdminBookComponent {
     } else {
       console.error('Form is invalid');
     }
-   }
+  }
 }

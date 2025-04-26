@@ -12,6 +12,7 @@ import {BookManagementComponent} from "./pages/admin/book-management/book-manage
 import {StatisticsComponent} from "./pages/admin/statistics/statistics.component";
 import {AdminLayoutComponent} from "./components/admin-layout/admin-layout.component";
 import {AdminBookComponent} from "./pages/admin/admin-book/admin-book.component";
+import {AdminAddBookComponent} from "./pages/admin/admin-add-book/admin-add-book.component";
 
 export const routes: Routes = [
   {
@@ -42,6 +43,10 @@ export const routes: Routes = [
       {
         path: 'book/:isbn',
         component: AdminBookComponent
+      },
+      {
+        path: 'add-book',
+        component: AdminAddBookComponent
       },
       {
         path: 'stats',

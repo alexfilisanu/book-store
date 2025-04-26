@@ -113,6 +113,7 @@
   font-size: 22px;
   border: none;
   border-radius: 8px;
+  width: 350px;
 }
 
 .cart-btn:hover {
@@ -122,10 +123,4 @@
 .cart-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
-}
-
-.added-msg {
-  color: #1bdd45;
-  font-weight: bold;
-  font-size: 20px;
 }

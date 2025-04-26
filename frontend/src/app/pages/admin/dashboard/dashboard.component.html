@@ -10,4 +10,15 @@
 
 <body>
 <img class="bookshelf-img-container" src="../../../../assets/images/bookshelf.jpg" alt="bookshelf">
+<div class="books-container">
+  <h1>
+    Welcome to the Admin Dashboard!<br>
+    Here you can manage all the books in the library.
+  </h1>
+  <div class="buttons-container">
+    <button class="confirm-btn" (click)="navigatePage('admin/add-book')">Add Book</button>
+    <button class="confirm-btn" (click)="navigatePage('admin/books')">Edit Book</button>
+    <button class="confirm-btn" (click)="navigatePage('admin/stats')">View Statistics</button>
+  </div>
+</div>
 </body>

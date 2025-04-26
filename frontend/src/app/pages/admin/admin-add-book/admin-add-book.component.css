@@ -1,0 +1,42 @@
+.book-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 60%;
+  margin: 130px auto 20px;
+  text-align: center;
+  border-radius: 30px;
+  background: rgba(208, 162, 116, 0.7);
+  height: 80vh;
+  cursor: default;
+}
+
+.book-container h1 {
+  color: #FAF9F6;
+  font-size: 35px;
+  font-weight: bold;
+  margin-top: 50px;
+  margin-bottom: 40px;
+}
+
+.book-container .book-form {
+  display: flex;
+  margin: auto;
+  flex-direction: column;
+  align-items: center;
+  width: 50%;
+  gap: 5px;
+}
+
+.confirm-btn {
+  margin-top: 20px;
+  border-radius: 5px;
+  font-size: 20px;
+  padding: 10px 35px;
+}
+
+.confirm-btn:focus {
+  outline: none;
+}
