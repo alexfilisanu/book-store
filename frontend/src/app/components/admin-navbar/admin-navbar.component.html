@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Navbar</title>
+
+  <link rel="stylesheet" href="../../../assets/css/all.min.css"/>
+  <link rel="stylesheet" href="../../../assets/css/bootstrap.css"/>
+</head>
+
+<div class="custom-navbar-container">
+  <div class="row">
+    <div class="navbar-title col-lg-5">
+      BookStackAdmin
+    </div>
+    <ul class="navbar-list col-lg-7">
+      <li class="navbar-item navigate-item" (click)="navigatePage('admin/dashboard')">
+        Home
+      </li>
+      <li class="navbar-item navigate-item" (click)="navigatePage('admin/books')">
+        Manage Books
+      </li>
+      <li class="navbar-item navigate-item" (click)="navigatePage('admin/stats')">
+        Statistics
+      </li>
+      <li class="navbar-item navigate-item" (click)="logout()">
+        <i class="fa fa-sign-out"></i>
+      </li>
+    </ul>
+  </div>
+</div>

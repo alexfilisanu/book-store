@@ -133,3 +133,46 @@ html, body {
 .auth-form .navigate-message {
   margin-top: 20px;
 }
+
+.custom-navbar-container {
+  position: fixed;
+  width: 100%;
+  background-color: #232420;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+.navbar-title {
+  text-align: right;
+  color: transparent;
+  font-size: 60px;
+  font-weight: bold;
+  background-image: linear-gradient(to top, #ffffff, #808080);
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-family: "Gill Sans", sans-serif;
+  cursor: default;
+}
+
+.navbar-item {
+  margin-right: 50px;
+  margin-top: 10px;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.navbar-item:last-child {
+  margin-right: 0;
+}
+
+.navigate-item {
+  color: #FAF9F6;
+  font-size: 40px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navigate-item:hover {
+  color: #FFD700;
+}

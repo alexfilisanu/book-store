@@ -486,6 +486,7 @@ def place_order():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/cart/check', methods=['GET'])
 def check_if_in_cart():
     user_id = request.args.get('userId')
@@ -503,6 +504,63 @@ def check_if_in_cart():
     conn.close()
 
     return jsonify({'inCart': bool(result)})
+
+
+@app.route('/admin/book/<isbn>', methods=['PUT'])
+def update_book(isbn):
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    price = data.get('price')
+    quantity = data.get('quantity')
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        if price is not None:
+            cursor.execute("""
+                UPDATE inventory
+                SET Price = %s
+                WHERE ISBN = %s;
+            """, (price, isbn))
+
+        if quantity is not None:
+            cursor.execute("""
+                UPDATE inventory
+                SET Quantity = %s
+                WHERE ISBN = %s;
+            """, (quantity, isbn))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Book updated successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/admin/book/<isbn>', methods=['DELETE'])
+def delete_book(isbn):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            DELETE FROM books
+            WHERE ISBN = %s;
+        """, (isbn,))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'message': 'Book deleted successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=3050, host='0.0.0.0')

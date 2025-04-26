@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS users
 (
     User_ID  SERIAL PRIMARY KEY,
     Username TEXT,
-    Password TEXT
+    Password TEXT,
+    Role     TEXT CHECK (Role IN ('user', 'admin')) DEFAULT 'user'
 );
 
 CREATE TABLE IF NOT EXISTS ratings
@@ -60,6 +61,9 @@ COPY books (ISBN, Book_Title, Book_Author, Year_Of_Publication, Publisher, Image
 COPY users (User_ID, Username, Password)
     FROM '/docker-entrypoint-initdb.d/users.csv'
     DELIMITER ',' CSV HEADER;
+
+INSERT INTO users (Username, Password, Role)
+VALUES ('admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'admin');
 
 COPY ratings (User_ID, ISBN, Book_Rating)
     FROM '/docker-entrypoint-initdb.d/ratings.csv'

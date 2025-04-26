@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book</title>
+
+  <link rel="stylesheet" href="../../../../assets/css/bootstrap.css"/>
+  <link rel="stylesheet" href="../../../../assets/css/all.min.css"/>
+</head>
+
+<body>
+<img class="bookshelf-img-container" src="../../../../assets/images/bookshelf.jpg" alt="bookshelf">
+<div class="book-container">
+  <div class="row">
+    <div class="col-md-6">
+      <img [src]="book.Image_URL" alt="{{ book.Book_Title }}">
+      <button class="delete-button" (click)="deleteBook()">Delete Book</button>
+    </div>
+    <div class="col-md-6">
+      <div class="book-title" [innerHTML]="book.Book_Title"></div>
+      <p>Author: {{ book.Book_Author }}</p>
+      <p>Publisher: {{ book.Publisher }}</p>
+      <p>Year of publication: {{ book.Year_Of_Publication }}</p>
+      <p>ISBN: {{ book.ISBN }}</p>
+      <p>Price: {{ book.Price }} $</p>
+      <p>Quantity: {{ book.Quantity }}</p>
+      <form [formGroup]="bookForm" class="book-form" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <h4>Insert new price:</h4>
+          <input class="form-control" id="price" formControlName="price" placeholder="{{ book.Price }}" type="number"/>
+        </div>
+        <div class="form-row">
+          <h4>Insert new quantity:</h4>
+          <input class="form-control" id="quantity" formControlName="quantity" placeholder="{{ book.Quantity }}" type="number"/>
+        </div>
+        <button class="confirm-btn">Update</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>

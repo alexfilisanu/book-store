@@ -13,6 +13,7 @@ import {FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule} f
   styleUrl: './navbar.component.css'
 })
 export class NavbarComponent {
+
   public searchBooksFormGroup!: FormGroup;
   public searchQuery: string = '';
 

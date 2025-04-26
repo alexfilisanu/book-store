@@ -1,27 +1,29 @@
-.navbar-list {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+.book-actions button {
+  margin-right: 10px;
+}
+
+.form-control {
+  margin-bottom: 1rem;
+}
+
+.books-container {
+  text-align: center;
+}
+
+.search-container {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.search-icon-button:hover {
-  color: #FFD700;
-}
-
-.search-item {
-  display: inline-block;
-  margin-left: 20px;
+  margin-top: 80px;
+  margin-bottom: 100px;
 }
 
 .search-bar {
-  padding: 8px 12px;
-  font-size: 18px;
+  padding: 18px 26px;
+  font-size: 26px;
   border: none;
   border-radius: 20px;
-  width: 250px;
+  width: 700px;
   outline: none;
   background-color: #FAF9F6;
 }
@@ -38,14 +40,17 @@
 
 .search-icon-button {
   position: absolute;
-  top: 45%;
-  transform: translateX(-175%);
+  transform: translateX(825%);
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 36px;
   color: grey;
   cursor: pointer;
   padding: 0;
+}
+
+.search-icon-button:hover {
+  color: #FFD700;
 }
 
 .search-icon-button:focus {

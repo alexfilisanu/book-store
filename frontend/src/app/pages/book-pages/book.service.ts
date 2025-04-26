@@ -98,4 +98,16 @@ export class BookService {
   public orderBooks(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/order`, data);
   }
+
+  public addBook(data: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/admin/book`, data);
+  }
+
+  public updateBook(data: any, isbn: string): Observable<any> {
+    return this.http.put(`${this.baseUrl}/admin/book/${isbn}`, data);
+  }
+
+  public deleteBook(isbn: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/admin/book/${isbn}`);
+  }
 }

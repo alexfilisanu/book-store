@@ -22,7 +22,7 @@ def check_user_exists(username):
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        query = f"""
+        query = """
         SELECT
             username
         FROM
@@ -50,17 +50,17 @@ def register():
     password = data.get('password')
 
     if not all([username, password]):
-        return jsonify({'All fields are required'}), 400
+        return jsonify({'error': 'All fields are required'}), 400
 
     if check_user_exists(username):
-        return jsonify('Username already exists'), 400
+        return jsonify({'error': 'Username already exists'}), 400
 
     try:
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        query = f"""
+        query = """
         INSERT INTO 
             users (username, password)
         VALUES 
@@ -75,7 +75,7 @@ def register():
         return jsonify({'username': username, 'userId': user_id}), 200
 
     except Exception as e:
-        return jsonify({str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/auth/login', methods=['POST'])
@@ -88,16 +88,16 @@ def login():
     password = data.get('password')
 
     if not username or not password:
-        return jsonify({'All fields are required'}), 400
+        return jsonify({'error': 'All fields are required'}), 400
 
     try:
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        query = f"""
+        query = """
             SELECT
-                user_id, username
+                user_id, username, role
             FROM
                 users
             WHERE
@@ -108,13 +108,13 @@ def login():
 
         conn.close()
         if result:
-            user_id, username = result
-            return jsonify({'userId': user_id, 'username': username}), 200
+            user_id, username, role = result
+            return jsonify({'userId': user_id, 'username': username, 'role': role}), 200
         else:
-            return jsonify({'Invalid credentials'}), 401
+            return jsonify({'error': 'Invalid credentials'}), 401
 
     except Exception as e:
-        return jsonify({str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == "__main__":

@@ -44,13 +44,21 @@ export class LoginComponent {
           sessionStorage.setItem('isAuthenticated', 'true');
           sessionStorage.setItem('username', response.username);
           sessionStorage.setItem('userId', response.userId);
-          this.router.navigate(['/books']).catch(error => {
-            console.error('Error navigating to dashboard:', error);
-          });
+          sessionStorage.setItem('role', response.role);
+
+          if (response.role === 'admin') {
+            this.router.navigate(['/admin/dashboard']).catch(error => {
+              console.error('Error navigating to admin dashboard:', error);
+            });
+          } else {
+            this.router.navigate(['/books']).catch(error => {
+              console.error('Error navigating to user dashboard:', error);
+            });
+          }
         },
         error: (error) => {
-          this.errorMessage = error.error;
-          console.error('Error occurred while registering the user:', error);
+          this.errorMessage = error.error.error;
+          console.error('Error occurred while logging in the user:', error);
         }
       })
     } else if (this.areAllFieldsCompleted() && this.loginFormGroup?.get("username").invalid) {

@@ -25,7 +25,9 @@ export class BookPreviewComponent {
   }
 
   public viewBookDetails(isbn: string): void {
-    this.router.navigate(['/book', isbn])
+    const role = sessionStorage.getItem('role') ?? 'user';
+
+    this.router.navigate(role === 'admin' ? ['/admin/book', isbn] : ['/book', isbn])
       .catch(error => console.error('Error navigating to book details:', error));
   }
 }
