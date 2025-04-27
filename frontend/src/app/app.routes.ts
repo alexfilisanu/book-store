@@ -41,7 +41,7 @@ export const routes: Routes = [
         component: BookManagementComponent
       },
       {
-        path: 'book/:isbn',
+        path: 'book',
         component: AdminBookComponent
       },
       {
@@ -63,7 +63,7 @@ export const routes: Routes = [
         component: BooksComponent
       },
       {
-        path: 'book/:isbn',
+        path: 'book',
         component: BookComponent
       },
       {

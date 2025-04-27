@@ -24,10 +24,10 @@ export class BookPreviewComponent {
     return roundedRating / 2;
   }
 
-  public viewBookDetails(isbn: string): void {
+  public viewBookDetails(): void {
     const role = sessionStorage.getItem('role') ?? 'user';
 
-    this.router.navigate(role === 'admin' ? ['/admin/book', isbn] : ['/book', isbn])
+    this.router.navigate(role === 'admin' ? ['/admin/book'] : ['/book'], {queryParams: {isbn: this.book.ISBN}})
       .catch(error => console.error('Error navigating to book details:', error));
   }
 }

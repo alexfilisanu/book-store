@@ -25,8 +25,8 @@ export class AdminBookComponent {
   }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const {isbn} = params;
+    this.route.queryParams.subscribe(params => {
+      const {isbn = ''} = params;
       this.getBook(isbn);
     })
   }
@@ -60,11 +60,12 @@ export class AdminBookComponent {
   public onSubmit(): void {
     if (this.bookForm.valid) {
       const updatedBook = {
+        isbn: this.book.ISBN,
         price: this.bookForm.value.price,
         quantity: this.bookForm.value.quantity
       };
 
-      this.bookService.updateBook(updatedBook, this.book.ISBN).subscribe({
+      this.bookService.updateBook(updatedBook).subscribe({
         next: () => {
           this.getBook(this.book.ISBN);
         },

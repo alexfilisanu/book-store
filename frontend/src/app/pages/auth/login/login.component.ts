@@ -3,6 +3,7 @@ import {FormBuilder, FormsModule, ReactiveFormsModule, Validators} from "@angula
 import {NgClass} from "@angular/common";
 import {AuthService} from "../auth.service";
 import {Router} from "@angular/router";
+import * as jwt_decode from 'jwt-decode';
 
 @Component({
   selector: 'app-login',
@@ -41,12 +42,14 @@ export class LoginComponent {
 
       this.authService.loginUser(this.loginFormGroup.value).subscribe({
         next: (response) => {
-          sessionStorage.setItem('isAuthenticated', 'true');
-          sessionStorage.setItem('username', response.username);
-          sessionStorage.setItem('userId', response.userId);
-          sessionStorage.setItem('role', response.role);
+          sessionStorage.setItem('access_token', response.access_token);
+          sessionStorage.setItem('refresh_token', response.refresh_token);
 
-          if (response.role === 'admin') {
+          const decodedToken: any = jwt_decode.jwtDecode(response.access_token);
+          sessionStorage.setItem('username', decodedToken.username);
+          sessionStorage.setItem('role', decodedToken.role);
+
+          if (decodedToken.role === 'admin') {
             this.router.navigate(['/admin/dashboard']).catch(error => {
               console.error('Error navigating to admin dashboard:', error);
             });

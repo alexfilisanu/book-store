@@ -15,7 +15,6 @@ import {BooksPaginationComponent} from "../../../components/books-pagination/boo
 export class MyReviewsComponent {
 
   public userName: string | null = sessionStorage.getItem('username');
-  public userId: string | null = sessionStorage.getItem('userId');
   public reviews: any[] = [];
   public currentPage: number = 1;
   public totalReviews: number = 0;
@@ -34,12 +33,7 @@ export class MyReviewsComponent {
   }
 
   private getTotalBooks(): void {
-    if (!this.userId) {
-      console.error('User ID is not available');
-      return;
-    }
-
-    this.bookService.getMyTotalReviews(this.userId).subscribe({
+    this.bookService.getMyTotalReviews().subscribe({
       next: (response) => {
         this.totalReviews = response.totalReviews;
         this.totalPages = Math.ceil(this.totalReviews / this.booksPerPage);
@@ -51,12 +45,7 @@ export class MyReviewsComponent {
   }
 
   private getBooks(page: number = this.currentPage): void {
-    if (!this.userId) {
-      console.error('User ID is not available');
-      return;
-    }
-
-    this.bookService.getMyReviews(this.userId, page, this.booksPerPage).subscribe({
+    this.bookService.getMyReviews(page, this.booksPerPage).subscribe({
       next: (response) => {
         this.reviews = response.reviews;
       },

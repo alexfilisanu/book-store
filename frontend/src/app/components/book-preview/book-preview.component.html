@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../../../assets/css/all.min.css"/>
 </head>
 
-<div class="book" (click)="viewBookDetails(book.ISBN)">
+<div class="book" (click)="viewBookDetails()">
   <img [src]="book.Image_URL" alt="{{ book.Book_Title }}">
   <div class="book-title" [innerHTML]="book.Book_Title + ' - ' + book.Book_Author"></div>
   <div class="book-price">{{ book.Price }} $</div>

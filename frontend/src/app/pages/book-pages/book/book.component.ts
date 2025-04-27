@@ -18,7 +18,6 @@ export class BookComponent {
 
   public book: any = {};
   public selectedReview: number | null = null;
-  public userId: string | null = sessionStorage.getItem('userId');
   public bookRating: number | null = null;
   public addedToCart: boolean = false;
 
@@ -26,8 +25,8 @@ export class BookComponent {
   }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const {isbn} = params;
+    this.route.queryParams.subscribe(params => {
+      const {isbn = ''} = params;
       this.getBook(isbn);
       this.checkReviewStatus(isbn);
       this.checkIfInCart(isbn);
@@ -46,12 +45,7 @@ export class BookComponent {
   }
 
   public addToCart(): void {
-    if (!this.userId) {
-      console.error('No user ID found');
-      return;
-    }
-
-    const data = {userId: this.userId, isbn: this.book.ISBN};
+    const data = {isbn: this.book.ISBN};
     this.bookService.addToCart(data).subscribe({
       next: () => {
         this.addedToCart = true;
@@ -63,12 +57,7 @@ export class BookComponent {
   }
 
   private checkIfInCart(isbn: string): void {
-    if (!this.userId) {
-      console.error('No user ID found');
-      return;
-    }
-
-    this.bookService.checkIfInCart(this.userId, isbn).subscribe({
+    this.bookService.checkIfInCart(isbn).subscribe({
       next: (response) => {
         this.addedToCart = response.inCart;
       },
@@ -79,12 +68,7 @@ export class BookComponent {
   };
 
   public removeFromCart(): void {
-    if (!this.userId) {
-      console.error('No user ID found');
-      return;
-    }
-
-    const data = {userId: this.userId, isbn: this.book.ISBN};
+    const data = {isbn: this.book.ISBN};
     this.bookService.removeFromCart(data).subscribe({
       next: () => {
         this.addedToCart = false;
@@ -96,17 +80,12 @@ export class BookComponent {
   }
 
   private checkReviewStatus(isbn: string): void {
-    if (!this.userId) {
-      console.error('No user ID found');
-      return;
-    }
-
-    this.bookService.checkReviewStatus(isbn, this.userId).subscribe({
+    this.bookService.checkReviewStatus(isbn).subscribe({
       next: (response) => {
         this.bookRating = response.bookRating;
       },
       error: (error) => {
-        console.error(`Error checking review status for user ${this.userId} and book ${isbn}`, error);
+        console.error(`Error checking review status for book ${isbn}`, error);
       }
     });
   }
@@ -122,12 +101,8 @@ export class BookComponent {
       console.error('No review selected');
       return;
     }
-    if (!this.userId) {
-      console.error('No user ID found');
-      return;
-    }
 
-    const reviewData = {userId: this.userId, isbn: this.book.ISBN, rating: this.selectedReview.toString()};
+    const reviewData = {isbn: this.book.ISBN, rating: this.selectedReview.toString()};
     this.bookService.submitReview(reviewData).subscribe({
       next: () => {
         window.location.reload();

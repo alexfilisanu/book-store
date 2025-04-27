@@ -16,7 +16,6 @@ import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 export class MyCartComponent {
 
   public orderFormGroup: any;
-  public userId: string | null = sessionStorage.getItem('userId');
   public booksCart: any[] = [];
   public currentPage: number = 1;
   public totalBooksCart: number = 0;
@@ -38,14 +37,13 @@ export class MyCartComponent {
   }
 
   public onSubmit(): void {
-    if (this.orderFormGroup?.valid && this.userId) {
+    if (this.orderFormGroup?.valid) {
       const address = this.orderFormGroup.get('address')?.value;
 
-      this.bookService.getAllBooksCart(this.userId).subscribe({
+      this.bookService.getAllBooksCart().subscribe({
         next: (response) => {
           const allBooks: any[] = response.booksCart;
           const orderData = {
-            userId: this.userId,
             address: address,
             items: allBooks.map(book => ({
               isbn: book.ISBN
@@ -71,12 +69,7 @@ export class MyCartComponent {
   }
 
   private getTotalBooks(): void {
-    if (!this.userId) {
-      console.error('User ID is not available');
-      return;
-    }
-
-    this.bookService.getMyTotalBooksCart(this.userId).subscribe({
+    this.bookService.getMyTotalBooksCart().subscribe({
       next: (response) => {
         this.totalBooksCart = response.totalBooksCart;
         this.totalPages = Math.ceil(this.totalBooksCart / this.booksPerPage);
@@ -88,12 +81,7 @@ export class MyCartComponent {
   }
 
   private getBooks(page: number = this.currentPage): void {
-    if (!this.userId) {
-      console.error('User ID is not available');
-      return;
-    }
-
-    this.bookService.getMyBooksCart(this.userId, page, this.booksPerPage).subscribe({
+    this.bookService.getMyBooksCart(page, this.booksPerPage).subscribe({
       next: (response) => {
         this.booksCart = response.booksCart;
       },

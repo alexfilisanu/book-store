@@ -1,11 +1,14 @@
 import os
 
 import psycopg2
+import jwt
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from functools import wraps
 
 app = Flask(__name__)
 CORS(app)
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "my-secret-key")
 
 
 def get_db_connection():
@@ -17,8 +20,32 @@ def get_db_connection():
     )
 
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].split(" ")[1]
+
+        if not token:
+            return jsonify({'error': 'Token is missing'}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user_id = data['user_id']
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'error': 'Invalid token'}), 401
+
+        return f(current_user_id, *args, **kwargs)
+    return decorated
+
+
 @app.route('/total-books', methods=['GET'])
-def get_total_books():
+@token_required
+def get_total_books(user_id):
     search_query = request.args.get('q', '')
 
     try:
@@ -50,7 +77,8 @@ def get_total_books():
 
 
 @app.route('/books', methods=['GET'])
-def get_books():
+@token_required
+def get_books(user_id):
     search_query = request.args.get('q', '')
     page = int(request.args.get('page', 1))
     limit = int(request.args.get('limit', 10))
@@ -112,8 +140,11 @@ def get_books():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/book/<isbn>/', methods=['GET'])
-def get_book(isbn):
+@app.route('/book', methods=['GET'])
+@token_required
+def get_book(user_id):
+    isbn = request.args.get('isbn', '')
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -166,12 +197,8 @@ def get_book(isbn):
 
 
 @app.route('/total-reviews', methods=['GET'])
-def get_my_total_reviews():
-    user_id = int(request.args.get('userId'))
-
-    if not user_id:
-        return jsonify({'error': 'Missing required data'}), 400
-
+@token_required
+def get_my_total_reviews(user_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -195,14 +222,11 @@ def get_my_total_reviews():
 
 
 @app.route('/reviews', methods=['GET'])
-def get_my_reviews():
-    user_id = request.args.get('userId')
+@token_required
+def get_my_reviews(user_id):
     page = int(request.args.get('page', 1))
     limit = int(request.args.get('limit', 10))
     offset = (page - 1) * limit
-
-    if not user_id:
-        return jsonify({'error': 'Missing required data'}), 400
 
     try:
         conn = get_db_connection()
@@ -251,11 +275,11 @@ def get_my_reviews():
 
 
 @app.route('/book/review/status', methods=['GET'])
-def get_review_status():
-    user_id = int(request.args.get('userId'))
+@token_required
+def get_review_status(user_id):
     isbn = request.args.get('isbn')
 
-    if not user_id or not isbn:
+    if not isbn:
         return jsonify({'error': 'Missing required data'}), 400
 
     try:
@@ -282,12 +306,12 @@ def get_review_status():
 
 
 @app.route('/book/review', methods=['POST'])
-def add_book_review():
+@token_required
+def add_book_review(user_id):
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
 
-    user_id = int(data.get('userId'))
     isbn = data.get('isbn')
     rating = int(data.get('rating'))
 
@@ -312,12 +336,12 @@ def add_book_review():
 
 
 @app.route('/cart', methods=['POST'])
-def add_to_cart():
+@token_required
+def add_to_cart(user_id):
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
 
-    user_id = int(data.get('userId'))
     isbn = data.get('isbn')
 
     try:
@@ -340,12 +364,12 @@ def add_to_cart():
 
 
 @app.route('/cart', methods=['DELETE'])
-def remove_from_cart():
+@token_required
+def remove_from_cart(user_id):
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
 
-    user_id = int(data.get('userId'))
     isbn = data.get('isbn')
 
     try:
@@ -368,12 +392,8 @@ def remove_from_cart():
 
 
 @app.route('/total-cart', methods=['GET'])
-def get_total_cart():
-    user_id = request.args.get('userId')
-
-    if not user_id:
-        return jsonify({'error': 'Missing required data'}), 400
-
+@token_required
+def get_total_cart(user_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -397,13 +417,10 @@ def get_total_cart():
 
 
 @app.route('/cart', methods=['GET'])
-def get_books_cart():
-    user_id = request.args.get('userId')
+@token_required
+def get_books_cart(user_id):
     page = request.args.get('page')
     limit = request.args.get('limit')
-
-    if not user_id:
-        return jsonify({'error': 'Missing required data'}), 400
 
     try:
         conn = get_db_connection()
@@ -457,10 +474,10 @@ def get_books_cart():
 
 
 @app.route('/order', methods=['POST'])
-def place_order():
+@token_required
+def place_order(user_id):
     data = request.get_json()
 
-    user_id = data.get('userId')
     address = data.get('address')
     items = data.get('items', [])
 
@@ -516,11 +533,11 @@ def place_order():
 
 
 @app.route('/cart/check', methods=['GET'])
-def check_if_in_cart():
-    user_id = request.args.get('userId')
+@token_required
+def check_if_in_cart(user_id):
     isbn = request.args.get('isbn')
 
-    if not user_id or not isbn:
+    if not isbn:
         return jsonify({'error': 'Missing required data'}), 400
 
     conn = get_db_connection()
@@ -534,12 +551,14 @@ def check_if_in_cart():
     return jsonify({'inCart': bool(result)})
 
 
-@app.route('/admin/book/<isbn>', methods=['PUT'])
-def update_book(isbn):
+@app.route('/admin/book', methods=['PUT'])
+@token_required
+def update_book(user_id):
     data = request.json
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
+    isbn = data.get('isbn')
     price = data.get('price')
     quantity = data.get('quantity')
 
@@ -570,8 +589,14 @@ def update_book(isbn):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/admin/book/<isbn>', methods=['DELETE'])
-def delete_book(isbn):
+@app.route('/admin/book', methods=['DELETE'])
+@token_required
+def delete_book(user_id):
+    isbn = request.args.get('isbn')
+
+    if not isbn:
+        return jsonify({'error': 'Missing required data'}), 400
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -591,7 +616,8 @@ def delete_book(isbn):
 
 
 @app.route('/admin/book', methods=['POST'])
-def add_book():
+@token_required
+def add_book(user_id):
     data = request.json
     if not data:
         return jsonify({'error': 'No data provided'}), 400
@@ -629,7 +655,8 @@ def add_book():
 
 
 @app.route('/stats/orders-per-month', methods=['GET'])
-def orders_per_month():
+@token_required
+def orders_per_month(user_id):
     year = request.args.get('year')
     try:
         conn = get_db_connection()
@@ -668,7 +695,8 @@ def orders_per_month():
 
 
 @app.route('/stats/publisher-distribution', methods=['GET'])
-def publisher_distribution():
+@token_required
+def publisher_distribution(user_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -711,7 +739,8 @@ def publisher_distribution():
 
 
 @app.route('/stats/earnings-per-month', methods=['GET'])
-def earnings_per_month():
+@token_required
+def earnings_per_month(user_id):
     try:
         year = request.args.get('year', type=int)
 
