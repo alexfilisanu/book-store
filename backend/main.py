@@ -5,9 +5,11 @@ import jwt
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from functools import wraps
+from flasgger import Swagger
 
 app = Flask(__name__)
 CORS(app)
+swagger = Swagger(app)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "my-secret-key")
 
 
@@ -40,12 +42,28 @@ def token_required(f):
             return jsonify({'error': 'Invalid token'}), 401
 
         return f(current_user_id, *args, **kwargs)
+
     return decorated
 
 
 @app.route('/total-books', methods=['GET'])
 @token_required
 def get_total_books(user_id):
+    """
+    Get the total number of books in the database.
+    ---
+    responses:
+      200:
+        description: Total number of books
+        schema:
+          type: object
+          properties:
+            totalBooks:
+              type: integer
+              example: 100
+      500:
+        description: Internal server error
+    """
     search_query = request.args.get('q', '')
 
     try:
@@ -79,6 +97,54 @@ def get_total_books(user_id):
 @app.route('/books', methods=['GET'])
 @token_required
 def get_books(user_id):
+    """
+    Get a list of books based on search query.
+    ---
+    parameters:
+      - name: q
+        in: query
+        required: false
+        description: Search query for book title, author, or ISBN
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        description: Page number for pagination
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Number of books per page
+        schema:
+          type: integer
+    responses:
+      200:
+        description: List of books
+        schema:
+          type: object
+          properties:
+            books:
+              type: array
+              items:
+                type: object
+                properties:
+                  ISBN:
+                    type: string
+                  Book_Title:
+                    type: string
+                  Book_Author:
+                    type: string
+                  Image_URL:
+                    type: string
+                  Average_Rating:
+                    type: number
+                  Price:
+                    type: number
+      500:
+        description: Internal server error
+    """
     search_query = request.args.get('q', '')
     page = int(request.args.get('page', 1))
     limit = int(request.args.get('limit', 10))
@@ -143,6 +209,48 @@ def get_books(user_id):
 @app.route('/book', methods=['GET'])
 @token_required
 def get_book(user_id):
+    """
+    Get book details by ISBN.
+    ---
+    parameters:
+      - name: isbn
+        in: query
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+    responses:
+      200:
+        description: Book details
+        schema:
+          type: object
+          properties:
+            book:
+              type: object
+              properties:
+                ISBN:
+                  type: string
+                Book_Title:
+                  type: string
+                Book_Author:
+                  type: string
+                Year_Of_Publication:
+                  type: integer
+                Publisher:
+                  type: string
+                Image_URL:
+                  type: string
+                Average_Rating:
+                  type: number
+                Quantity:
+                  type: integer
+                Price:
+                  type: number
+      404:
+        description: Book not found
+      500:
+        description: Internal server error
+    """
     isbn = request.args.get('isbn', '')
 
     try:
@@ -199,6 +307,21 @@ def get_book(user_id):
 @app.route('/total-reviews', methods=['GET'])
 @token_required
 def get_my_total_reviews(user_id):
+    """
+    Get the total number of reviews for the logged-in user.
+    ---
+    responses:
+      200:
+        description: Total number of reviews
+        schema:
+          type: object
+          properties:
+            totalReviews:
+              type: integer
+              example: 50
+      500:
+        description: Internal server error
+    """
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -224,6 +347,48 @@ def get_my_total_reviews(user_id):
 @app.route('/reviews', methods=['GET'])
 @token_required
 def get_my_reviews(user_id):
+    """
+    Get reviews for the logged-in user.
+    ---
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page number for pagination
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        required: false
+        description: Number of reviews per page
+        schema:
+          type: integer
+    responses:
+      200:
+        description: List of reviews
+        schema:
+          type: object
+          properties:
+            reviews:
+              type: array
+              items:
+                type: object
+                properties:
+                  ISBN:
+                    type: string
+                  Book_Title:
+                    type: string
+                  Book_Author:
+                    type: string
+                  Image_URL:
+                    type: string
+                  Average_Rating:
+                    type: number
+                  Price:
+                    type: number
+      500:
+        description: Internal server error
+    """
     page = int(request.args.get('page', 1))
     limit = int(request.args.get('limit', 10))
     offset = (page - 1) * limit
@@ -277,6 +442,29 @@ def get_my_reviews(user_id):
 @app.route('/book/review/status', methods=['GET'])
 @token_required
 def get_review_status(user_id):
+    """
+    Get the review status for a book.
+    ---
+    parameters:
+      - name: isbn
+        in: query
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+    responses:
+      200:
+        description: Review status
+        schema:
+          type: object
+          properties:
+            bookRating:
+              type: integer
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     isbn = request.args.get('isbn')
 
     if not isbn:
@@ -308,6 +496,30 @@ def get_review_status(user_id):
 @app.route('/book/review', methods=['POST'])
 @token_required
 def add_book_review(user_id):
+    """
+    Add a review for a book.
+    ---
+    parameters:
+      - name: isbn
+        in: body
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+      - name: rating
+        in: body
+        required: true
+        description: Rating for the book
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Review added successfully
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
@@ -338,6 +550,24 @@ def add_book_review(user_id):
 @app.route('/cart', methods=['POST'])
 @token_required
 def add_to_cart(user_id):
+    """
+    Add a book to the cart.
+    ---
+    parameters:
+      - name: isbn
+        in: body
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+    responses:
+      200:
+        description: Book added to cart
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
@@ -366,6 +596,24 @@ def add_to_cart(user_id):
 @app.route('/cart', methods=['DELETE'])
 @token_required
 def remove_from_cart(user_id):
+    """
+    Remove a book from the cart.
+    ---
+    parameters:
+      - name: isbn
+        in: body
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+    responses:
+      200:
+        description: Book removed from cart
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
@@ -394,6 +642,21 @@ def remove_from_cart(user_id):
 @app.route('/total-cart', methods=['GET'])
 @token_required
 def get_total_cart(user_id):
+    """
+    Get the total number of books in the cart.
+    ---
+    responses:
+      200:
+        description: Total number of books in the cart
+        schema:
+          type: object
+          properties:
+            totalBooksCart:
+              type: integer
+              example: 5
+      500:
+        description: Internal server error
+    """
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -419,6 +682,48 @@ def get_total_cart(user_id):
 @app.route('/cart', methods=['GET'])
 @token_required
 def get_books_cart(user_id):
+    """
+    Get books in the cart.
+    ---
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page number for pagination
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        description: Number of books per page
+        schema:
+          type: integer
+    responses:
+      200:
+          description: List of books in the cart
+          schema:
+            type: object
+            properties:
+              booksCart:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ISBN:
+                      type: string
+                    Book_Title:
+                      type: string
+                    Book_Author:
+                      type: string
+                    Image_URL:
+                      type: string
+                    Average_Rating:
+                      type: number
+                    Price:
+                      type: number
+      500:
+        description: Internal server error
+    """
     page = request.args.get('page')
     limit = request.args.get('limit')
 
@@ -476,6 +781,35 @@ def get_books_cart(user_id):
 @app.route('/order', methods=['POST'])
 @token_required
 def place_order(user_id):
+    """
+    Place an order for the books in the cart.
+    ---
+    parameters:
+      - name: address
+        in: body
+        required: true
+        description: Shipping address for the order
+        schema:
+          type: string
+      - name: items
+        in: body
+        required: true
+        description: List of books in the cart
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              isbn:
+                type: string
+    responses:
+      200:
+        description: Order placed successfully
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.get_json()
 
     address = data.get('address')
@@ -535,6 +869,30 @@ def place_order(user_id):
 @app.route('/cart/check', methods=['GET'])
 @token_required
 def check_if_in_cart(user_id):
+    """
+    Check if a book is in the cart.
+    ---
+    parameters:
+      - name: isbn
+        in: query
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+    responses:
+      200:
+        description: Book in cart status
+        schema:
+          type: object
+          properties:
+            inCart:
+              type: boolean
+              example: true
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     isbn = request.args.get('isbn')
 
     if not isbn:
@@ -554,6 +912,36 @@ def check_if_in_cart(user_id):
 @app.route('/admin/book', methods=['PUT'])
 @token_required
 def update_book(user_id):
+    """
+    Update book details.
+    ---
+    parameters:
+      - name: isbn
+        in: body
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+      - name: price
+        in: body
+        required: false
+        description: New price for the book
+        schema:
+          type: number
+      - name: quantity
+        in: body
+        required: false
+        description: New quantity for the book
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Book updated successfully
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     if not data:
         return jsonify({'error': 'No data provided'}), 400
@@ -592,6 +980,24 @@ def update_book(user_id):
 @app.route('/admin/book', methods=['DELETE'])
 @token_required
 def delete_book(user_id):
+    """
+    Delete a book from the database.
+    ---
+    parameters:
+      - name: isbn
+        in: query
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+    responses:
+      200:
+        description: Book deleted successfully
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     isbn = request.args.get('isbn')
 
     if not isbn:
@@ -618,6 +1024,66 @@ def delete_book(user_id):
 @app.route('/admin/book', methods=['POST'])
 @token_required
 def add_book(user_id):
+    """
+    Add a new book to the database.
+    ---
+    parameters:
+      - name: isbn
+        in: body
+        required: true
+        description: ISBN of the book
+        schema:
+          type: string
+      - name: title
+        in: body
+        required: true
+        description: Title of the book
+        schema:
+          type: string
+      - name: author
+        in: body
+        required: true
+        description: Author of the book
+        schema:
+          type: string
+      - name: year
+        in: body
+        required: true
+        description: Year of publication
+        schema:
+          type: integer
+      - name: publisher
+        in: body
+        required: true
+        description: Publisher of the book
+        schema:
+          type: string
+      - name: image
+        in: body
+        required: true
+        description: Image URL of the book
+        schema:
+          type: string
+      - name: price
+        in: body
+        required: true
+        description: Price of the book
+        schema:
+          type: number
+      - name: quantity
+        in: body
+        required: true
+        description: Quantity of the book
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Book added successfully
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     if not data:
         return jsonify({'error': 'No data provided'}), 400
@@ -657,6 +1123,36 @@ def add_book(user_id):
 @app.route('/stats/orders-per-month', methods=['GET'])
 @token_required
 def orders_per_month(user_id):
+    """
+    Get the number of orders placed per month.
+    ---
+    parameters:
+      - name: year
+        in: query
+        required: false
+        description: Year to filter orders
+        schema:
+          type: integer
+    responses:
+      200:
+        description: List of orders per month
+        schema:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  month:
+                    type: string
+                  orderCount:
+                    type: integer
+      500:
+        description: Internal server error
+      400:
+        description: Bad request
+    """
     year = request.args.get('year')
     try:
         conn = get_db_connection()
@@ -697,6 +1193,29 @@ def orders_per_month(user_id):
 @app.route('/stats/publisher-distribution', methods=['GET'])
 @token_required
 def publisher_distribution(user_id):
+    """
+    Get the distribution of books by publisher.
+    ---
+    responses:
+      200:
+        description: List of publishers with book counts
+        schema:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  publisher:
+                    type: string
+                  booksCount:
+                    type: integer
+      500:
+        description: Internal server error
+      400:
+        description: Bad request
+    """
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -741,6 +1260,36 @@ def publisher_distribution(user_id):
 @app.route('/stats/earnings-per-month', methods=['GET'])
 @token_required
 def earnings_per_month(user_id):
+    """
+    Get the total earnings per month.
+    ---
+    parameters:
+      - name: year
+        in: query
+        required: true
+        description: Year to filter earnings
+        schema:
+          type: integer
+    responses:
+      200:
+        description: List of earnings per month
+        schema:
+          type: object
+          properties:
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  month:
+                    type: string
+                  earnings:
+                    type: number
+      500:
+        description: Internal server error
+      400:
+        description: Bad request
+    """
     try:
         year = request.args.get('year', type=int)
 

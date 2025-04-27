@@ -5,9 +5,11 @@ import jwt
 import psycopg2
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flasgger import Swagger
 
 app = Flask(__name__)
 CORS(app)
+swagger = Swagger(app)
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "my-secret-key")
 
 
@@ -65,6 +67,28 @@ def check_user_exists(username):
 
 @app.route('/auth/register', methods=['POST'])
 def register():
+    """
+    User Registration
+    ---
+    parameters:
+      - name: username
+        in: body
+        required: true
+        schema:
+          type: string
+      - name: password
+        in: body
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: User registered successfully
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
@@ -103,6 +127,30 @@ def register():
 
 @app.route('/auth/login', methods=['POST'])
 def login():
+    """
+    User Login
+    ---
+    parameters:
+      - name: username
+        in: body
+        required: true
+        schema:
+          type: string
+      - name: password
+        in: body
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: User logged in successfully
+      401:
+        description: Invalid credentials
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     if not data:
         return jsonify({'No data provided'}), 400
@@ -143,6 +191,25 @@ def login():
 
 @app.route('/auth/refresh', methods=['POST'])
 def refresh_token():
+    """
+    Refresh Access Token
+    ---
+    parameters:
+      - name: refresh_token
+        in: body
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: New access token generated
+      401:
+        description: Invalid or expired refresh token
+      400:
+        description: Bad request
+      500:
+        description: Internal server error
+    """
     data = request.json
     refresh_token = data.get('refresh_token')
 
