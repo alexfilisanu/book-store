@@ -10,4 +10,18 @@
 
 <body>
 <img class="bookshelf-img-container" src="../../../../assets/images/bookshelf.jpg" alt="bookshelf">
+<div class="books-container">
+  <div class="row">
+    <label for="yearInput">Select Year:</label>
+    <input type="number" id="yearInput" [(ngModel)]="yearInput" (change)="onYearChange()" class="form-control"/>
+  </div>
+  <div class="buttons-container" style="margin-top: 30px; text-align: center;">
+    <button class="confirm-btn" (click)="showChart(1)">View Orders By Month</button>
+    <button class="confirm-btn" (click)="showChart(2)">View Option 2</button>
+    <button class="confirm-btn" (click)="showChart(3)">View Option 3</button>
+  </div>
+  <div class="chart-container" *ngIf="isChartVisible">
+    <canvas #mainChart></canvas>
+  </div>
+</div>
 </body>

@@ -628,5 +628,129 @@ def add_book():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/stats/orders-per-month', methods=['GET'])
+def orders_per_month():
+    year = request.args.get('year')
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        if year:
+            cursor.execute("""
+                SELECT DATE_TRUNC('month', Order_Date) as Month, COUNT(*) as OrderCount
+                FROM orders
+                WHERE EXTRACT(YEAR FROM Order_Date) = %s
+                GROUP BY Month
+                ORDER BY Month;
+            """, (year,))
+        else:
+            cursor.execute("""
+                SELECT DATE_TRUNC('month', Order_Date) as Month, COUNT(*) as OrderCount
+                FROM orders
+                GROUP BY Month
+                ORDER BY Month;
+            """)
+
+        rows = cursor.fetchall()
+
+        result = []
+        for row in rows:
+            result.append({
+                'month': row[0].strftime('%Y-%m'),
+                'orderCount': row[1]
+            })
+
+        conn.close()
+        return jsonify({'data': result}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/stats/publisher-distribution', methods=['GET'])
+def publisher_distribution():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT Publisher, COUNT(*) as BooksCount
+            FROM books
+            GROUP BY Publisher
+            ORDER BY BooksCount DESC;
+        """)
+
+        rows = cursor.fetchall()
+
+        top_publishers = []
+        others_count = 0
+
+        for idx, row in enumerate(rows):
+            publisher = row[0] if row[0] else 'Unknown'
+            books_count = row[1]
+
+            if idx < 10:
+                top_publishers.append({
+                    'publisher': publisher,
+                    'booksCount': books_count
+                })
+            else:
+                others_count += books_count
+
+        if others_count > 0:
+            top_publishers.append({
+                'publisher': 'Others',
+                'booksCount': others_count
+            })
+
+        conn.close()
+        return jsonify({'data': top_publishers}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/stats/earnings-per-month', methods=['GET'])
+def earnings_per_month():
+    try:
+        year = request.args.get('year', type=int)
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                TO_CHAR(o.Order_Date, 'YYYY-MM') AS month,
+                SUM(i.Price) AS total_earnings
+            FROM
+                orders o
+            JOIN
+                order_items oi ON o.Order_ID = oi.Order_ID
+            JOIN
+                inventory i ON oi.ISBN = i.ISBN
+            WHERE
+                EXTRACT(YEAR FROM o.Order_Date) = %s
+            GROUP BY
+                month
+            ORDER BY
+                month;
+        """, (year,))
+
+        rows = cursor.fetchall()
+
+        result = []
+        for row in rows:
+            result.append({
+                'month': row[0],
+                'earnings': float(row[1]) if row[1] else 0.0
+            })
+
+        conn.close()
+        return jsonify({'data': result}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=3050, host='0.0.0.0')
