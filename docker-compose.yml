@@ -1,15 +1,15 @@
 version: "3.8"
 services:
-  #  frontend:
-  #    build:
-  #      context: ./frontend
-  #      dockerfile: Dockerfile
-  #    container_name: frontend
-  #    ports:
-  #      - "4200:4200"
-  #    depends_on:
-  #      - auth
-  #      - bookshelf
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - auth
+      - backend
 
   auth:
     build:
